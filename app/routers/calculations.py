@@ -72,3 +72,25 @@ def browse_calculations(
     )
 
     return calculations
+
+
+@router.get(
+    "/{calculation_id}",
+    response_model=CalculationRead,
+    status_code=status.HTTP_200_OK,
+)
+def read_calculation(
+    calculation_id: int,
+    db: Session = Depends(get_db),
+):
+    """Retrieve a calculation by its ID."""
+
+    calculation = db.get(Calculation, calculation_id)
+
+    if calculation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation not found",
+        )
+
+    return calculation
