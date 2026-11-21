@@ -1,11 +1,19 @@
-name: CI/CD
+name: Assignment 12 CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - assignment12
+      - "feature/**"
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - assignment12
+
   workflow_dispatch:
+
 
 permissions:
   contents: read
@@ -79,41 +87,55 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build image
-        run: docker build -t assignment11:scan .
+        run: docker build -t assignment12:scan .
       - name: Scan with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: image
-          image-ref: assignment11:scan
+          image-ref: assignment12:scan
           format: table
           exit-code: "1"
           ignore-unfixed: true
           severity: HIGH,CRITICAL
           skip-files: "**/pip/_vendor/bom.cdx.json"
+
       - name: Save scanned image for deployment
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: docker save assignment11:scan | gzip > assignment11-image.tar.gz
+        if: >-
+          github.event_name == 'push' &&
+          (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/assignment12')
+        run: docker save assignment12:scan | gzip > assignment12-image.tar.gz
+
       - name: Upload scanned image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: >-
+          github.event_name == 'push' &&
+          (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/assignment12')
         uses: actions/upload-artifact@v5
         with:
-          name: assignment11-scanned-image
-          path: assignment11-image.tar.gz
+          name: assignment12-scanned-image
+          path: assignment12-image.tar.gz
           retention-days: 1
           compression-level: 0
 
+
+  
   deploy:
     name: Deploy to Docker Hub
     needs: security
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/assignment12')
     runs-on: ubuntu-latest
+
     steps:
       - name: Download scanned image
         uses: actions/download-artifact@v6
         with:
-          name: assignment11-scanned-image
+          name: assignment12-scanned-image
       - name: Load scanned image
-        run: gunzip -c assignment11-image.tar.gz | docker load
+        run: gunzip -c assignment12-image.tar.gz | docker load
       - name: Check Docker Hub credentials
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
@@ -126,13 +148,25 @@ jobs:
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Tag and push Docker image
         env:
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          IMAGE="${DOCKERHUB_USERNAME}/assignment11"
-          docker tag assignment11:scan "${IMAGE}:latest"
-          docker tag assignment11:scan "${IMAGE}:${COMMIT_SHA}"
-          docker push "${IMAGE}:latest"
+          IMAGE="${DOCKERHUB_USERNAME}/assignment12"
+
+          # Tag and push with commit SHA
+          docker tag assignment12:scan "${IMAGE}:${COMMIT_SHA}"
           docker push "${IMAGE}:${COMMIT_SHA}"
+
+          # Select tag based on Git branch
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            CHANNEL="latest"
+          else
+            CHANNEL="assignment12"
+          fi
+
+          docker tag assignment12:scan "${IMAGE}:${CHANNEL}"
+          docker push "${IMAGE}:${CHANNEL}"
+
