@@ -1,355 +1,166 @@
-# Assignment 11 — Secure FastAPI Calculator API
+# Assignment 12 — FastAPI Calculator API
 
-A secure FastAPI calculator application extended with SQLAlchemy data models, Pydantic v2 validation, a Simple Factory Pattern for arithmetic operations, bcrypt password hashing, JWT authentication, PostgreSQL integration testing, and automated CI/CD deployment to Docker Hub.
+A FastAPI and PostgreSQL backend implementing **user registration, JWT-based login, and Calculation BREAD (Browse, Read, Edit, Add, Delete)**. The application uses Pydantic v2 for request/response validation, SQLAlchemy for persistence, a Calculation Factory for arithmetic operations, bcrypt password hashing, and GitHub Actions for tests, security scanning, and Docker Hub publishing.
 
-Assignment 11 builds on the existing Assignment 10 application by introducing a `Calculation` model, request and response schemas, and comprehensive tests for calculation data persistence and validation.
-
-**Note:** This assignment focuses on modeling, validation, and testing. Calculation BREAD endpoints will be implemented in Module 12.
-
----
+This module completes the backend API in preparation for the Module 13 frontend.
 
 ## Features
 
-### Calculator API
+- **Users:** register and log in using username or email; passwords are stored as bcrypt hashes rather than plaintext. Successful login returns a JWT bearer token.
+- **Calculations:** create, list, retrieve, update, and delete stored calculations. Supported operations: `Add`, `Sub`, `Multiply`, and `Divide`. Results are recalculated server-side.
+- **Validation:** Pydantic checks requests; duplicate registrations, invalid credentials, missing calculation IDs, invalid operation types, and division by zero return appropriate error responses.
+- **Testing:** unit, API integration, database integration, and Playwright E2E tests against a separate PostgreSQL test database.
+- **Delivery:** Docker/Compose, GitHub Actions, Trivy image scanning, and Docker Hub image publishing.
 
-- Arithmetic endpoints: `POST /add`, `/subtract`, `/multiply`, and `/divide`.
-- Input validation and division-by-zero handling.
-- `GET /health` endpoint for application and Docker health monitoring.
+## API Endpoints
 
-### SQLAlchemy Models
+| Method | Endpoint | Purpose | Typical success status |
+|---|---|---|---|
+| `POST` | `/users/register` | Register a user | `201 Created` |
+| `POST` | `/users/login` | Verify credentials and return JWT | `200 OK` |
+| `POST` | `/calculations` | Add a stored calculation | `201 Created` |
+| `GET` | `/calculations` | Browse calculations | `200 OK` |
+| `GET` | `/calculations/{calculation_id}` | Read one calculation | `200 OK` |
+| `PUT` | `/calculations/{calculation_id}` | Edit and recalculate | `200 OK` |
+| `DELETE` | `/calculations/{calculation_id}` | Delete a calculation | `204 No Content` |
+| `GET` | `/health` | Application health check | `200 OK` |
 
-**User Model**
-- Unique usernames and email addresses.
-- Secure password storage using bcrypt hashing.
-- User authentication and account management functionality.
-- User creation and update timestamps.
-
-**Calculation Model**
-- `id`: Unique calculation identifier.
-- `a`: First numeric operand.
-- `b`: Second numeric operand.
-- `type`: Arithmetic operation type.
-- `result`: Stored calculation result.
-- Database constraints preventing unsupported operations and division by zero.
-
-### Pydantic Validation
-
-- `UserCreate` and `UserRead` for user validation and serialization.
-- `CalculationCreate` for validating calculation operands and operation types.
-- `CalculationRead` for serializing stored calculation records.
-- Enum validation for supported operations: `Add`, `Sub`, `Multiply`, and `Divide`.
-- Validation rejecting invalid numeric inputs, unsupported operations, and zero divisors.
-- Response schemas that do not expose password hashes.
-
-### Simple Factory Pattern
-
-A dictionary-based `CalculationFactory` selects and executes the appropriate arithmetic operation.
-
-Supported operations:
-- Addition
-- Subtraction
-- Multiplication
-- Division
-
-The factory reuses the existing arithmetic functions, separates calculation selection from other application logic, and provides a foundation for future extensibility.
-
-### Authentication and Security
-
-- Password hashing and verification using Passlib/bcrypt.
-- JWT-based authentication.
-- Pydantic input validation.
-- PostgreSQL integrity constraints.
-- Docker image vulnerability scanning with Trivy.
-
-### Automated Testing and Deployment
-
-- Pytest unit tests.
-- PostgreSQL-backed integration tests.
-- Playwright end-to-end tests.
-- Application code coverage reporting.
-- GitHub Actions CI/CD automation.
-- Docker image building, security scanning, and Docker Hub publishing.
-
----
+The original arithmetic endpoints (`/add`, `/subtract`, `/multiply`, `/divide`) are also retained.
 
 ## Technology Stack
 
-| Technology | Purpose |
-|---|---|
-| Python 3.14 | Application programming language |
-| FastAPI | Web application framework |
-| Uvicorn | ASGI application server |
-| SQLAlchemy | ORM and database modeling |
-| Pydantic v2 | Data validation and serialization |
-| PostgreSQL 16 | Relational database |
-| psycopg2 | PostgreSQL database driver |
-| Passlib / bcrypt | Password hashing |
-| JWT | Authentication |
-| pytest | Unit and integration testing |
-| pytest-cov | Code coverage reporting |
-| Playwright | End-to-end browser testing |
-| Docker / Docker Compose | Application containerization |
-| GitHub Actions | Continuous integration and deployment |
-| Trivy | Docker image security scanning |
-
----
-
-## Project Structure
-
-```text
-assignment11/
-├── .github/
-│   └── workflows/
-│       └── test.yml
-├── app/
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   └── dependencies.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   └── calculation.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── user.py
-│   │   └── calculation.py
-│   ├── operations/
-│   │   ├── __init__.py
-│   │   └── factory.py
-│   ├── __init__.py
-│   ├── config.py
-│   ├── database.py
-│   └── database_init.py
-├── templates/
-│   └── index.html
-├── tests/
-│   ├── unit/
-│   │   ├── test_app_init.py
-│   │   ├── test_calculation.py
-│   │   ├── test_calculator.py
-│   │   └── test_database_coverage.py
-│   ├── integration/
-│   │   ├── test_calculation.py
-│   │   └── ...existing integration tests
-│   ├── e2e/
-│   │   └── test_e2e.py
-│   └── conftest.py
-├── .dockerignore
-├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
-├── main.py
-├── pytest.ini
-├── requirements.txt
-├── README.md
-└── REFLECTION.md
-```
-
-The project retains the existing Assignment 10 user, authentication, database, and API functionality.
-
----
+- Python 3.14, FastAPI, Pydantic v2
+- SQLAlchemy and PostgreSQL 16
+- bcrypt password hashing, JWT authentication
+- pytest, pytest-cov, Playwright
+- Docker and Docker Compose
+- GitHub Actions and Trivy
+- Docker Hub
 
 ## Local Setup (Ubuntu / WSL)
 
-### 1. Prerequisites
+### Prerequisites
 
-Install:
+Install Git, Python 3.14, Docker with Docker Compose, and a working Python virtual environment.
 
-- Python 3.14
-- Git
-- Docker and Docker Compose
-- A compatible PostgreSQL environment
-
-### 2. Clone the Repository
+### Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/assignment11.git
-cd assignment11
-```
-
-Replace the repository URL with your actual GitHub repository URL.
-
-### 3. Create a Virtual Environment
-
-```bash
+git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY.git
+cd YOUR_REPOSITORY
+git switch assignment12
 python3.14 -m venv .venv
 source .venv/bin/activate
-```
-
-Upgrade pip and install dependencies:
-
-```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-python -m pip check
+python -m playwright install chromium
 ```
 
-### 4. Configure Environment Variables
+Replace the repository placeholders with the real GitHub URL and local directory. After Assignment 12 is merged into `main`, the branch switch is optional.
 
-Create a local `.env` file.
+### Environment variables
 
-Generate a secure JWT signing key:
+Create a local `.env` file (never commit it). For development with the project’s Docker Compose file, a `SECRET_KEY` is required:
 
 ```bash
-python -c "import secrets; print(secrets.token_urlsafe(48))"
+python -c 'import secrets; print("SECRET_KEY=" + secrets.token_urlsafe(48))' > .env
 ```
 
-Example `.env` configuration when running FastAPI directly from WSL and using PostgreSQL on host port `5433`:
+Other configuration defaults or Compose environment settings include `ALGORITHM=HS256` and `ACCESS_TOKEN_EXPIRE_MINUTES=30`. Inside Compose, FastAPI connects to PostgreSQL at `db:5432`; from the WSL host, PostgreSQL is exposed on `localhost:5433`.
 
-```dotenv
-DATABASE_URL=postgresql://postgres:postgres@localhost:5433/fastapi_db
-SECRET_KEY=REPLACE_WITH_YOUR_GENERATED_SECRET
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-The credentials are examples for local development only. Never commit `.env` or real secrets to GitHub.
-
----
-
-## Run with Docker Compose
-
-Start the FastAPI application, PostgreSQL, and pgAdmin:
+### Start the application with Docker Compose
 
 ```bash
 docker compose up -d --build
 docker compose ps
+docker compose logs web --tail=50
 ```
 
-Available services:
+The web container initializes any missing application tables before launching Uvicorn. Database initialization uses `Base.metadata.create_all()`; it is **not** a replacement for schema migrations.
 
-- FastAPI application: http://localhost:8000/
-- Swagger API documentation: http://localhost:8000/docs
-- Health check: http://localhost:8000/health
-- pgAdmin: http://localhost:5050/
+Service URLs:
 
-The Compose services must expose the corresponding host ports for these URLs to work.
+- Health check: <http://localhost:8000/health>
+- Swagger UI: <http://localhost:8000/docs>
+- ReDoc: <http://localhost:8000/redoc>
+- pgAdmin: <http://localhost:5050/>
 
-Verify application health:
+Test the health endpoint:
 
 ```bash
 curl -i http://localhost:8000/health
 ```
 
-Expected response:
+Expected HTTP status: `200 OK`.
 
-```text
-HTTP/1.1 200 OK
-```
-
-```json
-{"status": "healthy"}
-```
-
-Stop the containers while preserving database volumes:
+Stop the application without removing stored PostgreSQL data:
 
 ```bash
 docker compose down
 ```
 
-### PostgreSQL Port Configuration
+**Warning:** Do not use `docker compose down -v` unless intentionally deleting the Compose-managed database volumes.
 
-Assignment 11 uses a separate PostgreSQL container configuration to avoid conflicts with Assignment 10.
+## Manual Testing Through OpenAPI (Swagger UI)
 
-| Connection | Port |
-|---|---|
-| PostgreSQL host port | 5433 |
-| PostgreSQL container port | 5432 |
-| FastAPI running inside Docker | db:5432 |
-| FastAPI running directly in WSL | localhost:5433 |
+Open <http://localhost:8000/docs>, expand an endpoint, click **Try it out**, enter the JSON body or path parameter, and click **Execute**.
 
-If Docker Compose exposes PostgreSQL through a different host port, update the environment variables accordingly.
+1. **Register** at `POST /users/register`:
 
----
+   ```json
+   {
+     "first_name": "Jane",
+     "last_name": "Doe",
+     "email": "jane.assignment12@example.com",
+     "username": "janeassignment12",
+     "password": "SecurePass123"
+   }
+   ```
 
-## Calculation Model and Validation
+   Expected: `201 Created` and user information **without** a plaintext password or password hash. Repeating the same registration should return `409 Conflict`.
 
-### Calculation Model
+2. **Log in** at `POST /users/login`:
 
-The SQLAlchemy `Calculation` model is defined in:
+   ```json
+   {
+     "username": "janeassignment12",
+     "password": "SecurePass123"
+   }
+   ```
 
-`app/models/calculation.py`
+   Expected: `200 OK`, a nonempty `access_token`, and `token_type: "bearer"`. A wrong password should return `401 Unauthorized`. Do not share real access tokens in screenshots.
 
-It stores the operands, operation type, and computed result.
+3. **Add** a calculation at `POST /calculations`:
 
-Database constraints validate supported operation types and reject division by zero.
+   ```json
+   {
+     "a": 10.0,
+     "b": 5.0,
+     "type": "Add"
+   }
+   ```
 
-### CalculationCreate Schema
+   Expected: `201 Created`, a generated `id`, and `result: 15.0`. Save the returned ID for the next steps.
 
-Defined in:
+4. **Browse** using `GET /calculations`. Expected: `200 OK` and a JSON list containing the saved calculation.
+5. **Read** using `GET /calculations/{calculation_id}` and your saved ID. Expected: `200 OK` and the corresponding record.
+6. **Edit** using `PUT /calculations/{calculation_id}` with:
 
-`app/schemas/calculation.py`
+   ```json
+   {
+     "a": 20.0,
+     "b": 4.0,
+     "type": "Divide"
+   }
+   ```
 
-Example valid calculation:
+   Expected: `200 OK`, the same ID, and `result: 5.0`.
+7. **Delete** using `DELETE /calculations/{calculation_id}`. Expected: `204 No Content`. Reading that ID afterward should return `404 Not Found`.
+8. **Validation checks:** division by zero and unsupported operations should return `400 Bad Request`. This application uses a custom validation handler that returns HTTP `400` rather than FastAPI’s default `422`.
 
-```python
-from app.schemas.calculation import CalculationCreate
+## Integration Tests and Coverage
 
-calculation = CalculationCreate(
-    a=10,
-    b=5,
-    type="Add",
-)
-```
-
-Example invalid calculation:
-
-```python
-CalculationCreate(
-    a=10,
-    b=0,
-    type="Divide",
-)
-```
-
-The second example raises a Pydantic `ValidationError` because division by zero is not permitted.
-
-### CalculationRead Schema
-
-The `CalculationRead` schema serializes a stored calculation into a validated response object.
-
-Returned fields include `id`, `a`, `b`, `type`, and `result`.
-
----
-
-## Simple Factory Pattern
-
-The factory implementation is located in:
-
-`app/operations/factory.py`
-
-The `CalculationFactory` uses an operation registry to select the correct arithmetic function.
-
-Example:
-
-```python
-from app.operations.factory import CalculationFactory
-
-result = CalculationFactory.calculate(
-    10, 5, "Add"
-)
-
-print(result)
-```
-
-Expected output:
-
-```text
-15
-```
-
-The factory supports all four arithmetic operations and raises an error when an unsupported operation is supplied.
-
-This design provides reusable calculation logic for the BREAD endpoints planned in Module 12.
-
----
-
-## Run Tests Locally
-
-Integration tests use a separate PostgreSQL database named `fastapi_test_db`.
-
-**Important:** The test setup can drop and recreate database tables. Never point the test suite at a development or production database containing important data.
+Tests use a **separate** PostgreSQL database named `fastapi_test_db`. Existing fixtures may drop/recreate tables; **never point tests at a development or production database containing important data**.
 
 ### 1. Start PostgreSQL
 
@@ -357,86 +168,36 @@ Integration tests use a separate PostgreSQL database named `fastapi_test_db`.
 docker compose up -d db
 ```
 
-Verify:
+If needed, create the test database once:
 
 ```bash
-docker compose ps
+docker compose exec db psql -U postgres -d postgres -c "CREATE DATABASE fastapi_test_db;"
 ```
 
-### 2. Create the Test Database
+Skip this command if the database already exists.
 
-```bash
-docker compose exec db \
-  psql -U postgres -d postgres \
-  -c "CREATE DATABASE fastapi_test_db;"
-```
+### 2. Configure the test database
 
-Skip database creation if the database already exists.
-
-### 3. Configure the Test Database URL
-
-For WSL with PostgreSQL exposed on port `5433`:
+For local WSL testing:
 
 ```bash
 export TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5433/fastapi_test_db"
 ```
 
-### 4. Run Calculation Unit Tests
+Ensure the application's database configuration and test fixtures are pointed at the isolated test database when running tests.
+
+### 3. Run focused API integration tests
 
 ```bash
-python -m pytest tests/unit/test_calculation.py -v
+python -m pytest tests/integration/test_user_api.py -v
+python -m pytest tests/integration/test_calculation_api.py -v
 ```
 
-These tests validate arithmetic operations, factory selection, Pydantic input validation, and invalid calculation handling.
+The user API tests cover registration, authentication, invalid credentials, duplicate registration, password hashing, JWT issuance, and database persistence. The calculation API tests cover all five BREAD operations, arithmetic correctness, missing IDs, invalid requests, and persistence.
 
-### 5. Run Calculation Integration Tests
+### 4. Run the full suite with coverage enforcement
 
-```bash
-python -m pytest tests/integration/test_calculation.py -v
-```
-
-These tests verify database insertion, retrieval, response serialization, and PostgreSQL constraints.
-
-### 6. Run Application Initialization Tests
-
-```bash
-python -m pytest tests/unit/test_app_init.py -v
-```
-
-These tests verify database initialization, cleanup, and execution of the application's initialization script.
-
-### 7. Start FastAPI for E2E Testing
-
-The Playwright tests require a running FastAPI server.
-
-Start the server in the background:
-
-```bash
-nohup python -m uvicorn main:app \
-  --host 127.0.0.1 \
-  --port 8000 \
-  > uvicorn.log 2>&1 &
-```
-
-Verify the server is available:
-
-```bash
-curl http://127.0.0.1:8000/
-```
-
-View logs:
-
-```bash
-tail -f uvicorn.log
-```
-
-### 8. Run All Tests
-
-```bash
-python -m pytest --run-slow -v
-```
-
-### 9. Run Tests with 100% Coverage Enforcement
+The E2E tests require a running FastAPI server. Start the Compose web service or run Uvicorn locally with a valid database configuration and `SECRET_KEY`.
 
 ```bash
 python -m pytest --run-slow -v \
@@ -446,111 +207,45 @@ python -m pytest --run-slow -v \
   --cov-fail-under=100
 ```
 
-Open `htmlcov/index.html` to inspect the detailed coverage report.
+The HTML report is written to `htmlcov/index.html`.
 
-
+**Verified local result (November 21, 2026): 139 passed, 100.00% coverage (329 statements, 0 missed).** The run reported one non-fatal `runpy` warning in the database initialization entrypoint test.
 
 ## CI/CD with GitHub Actions
 
-The project uses GitHub Actions to automate testing, security scanning, and Docker image publishing.
+The workflow lives at `.github/workflows/test.yml` and is configured to run on pushes to `main`, `assignment12`, and `feature/**` branches and on pull requests targeting `main` or `assignment12`.
 
-The combined pipeline is maintained in:
+1. **Test job:** start PostgreSQL 16, install Python dependencies and Playwright, start FastAPI, run pytest including slow tests, and enforce 100% coverage.
+2. **Security job:** build the Docker image and scan it with Trivy for configured HIGH/CRITICAL findings.
+3. **Deploy job:** after successful preceding jobs, publish Docker images for allowed branch pushes. Pull requests and feature branches do not publish images.
 
-`.github/workflows/test.yml`
+Configure GitHub repository **Settings → Secrets and variables → Actions**:
 
-### 1. Automated Testing
-
-The testing job:
-
-- Starts a PostgreSQL 16 service.
-- Installs Python dependencies.
-- Configures the test environment.
-- Installs Playwright Chromium.
-- Starts the FastAPI application.
-- Runs existing user tests and new calculation tests.
-- Enforces 100% application code coverage.
-- Generates coverage reports.
-
-### 2. Docker Image Build and Security Scan
-
-After testing succeeds, the workflow builds a Docker image and scans it with Trivy.
-
-Trivy identifies vulnerabilities based on the configured severity threshold.
-
-A passing security scan does not guarantee that the image contains no vulnerabilities.
-
-### 3. Docker Hub Deployment
-
-The deployment job publishes the Docker image to Docker Hub after successful preceding jobs.
-
-The current workflow is configured to deploy from the `main` branch. Deployment from `assignment11-calculation` requires updating the workflow's branch configuration or merging into `main`.
-
-### GitHub Repository Configuration
-
-Navigate to:
-
-**GitHub → Repository Settings → Secrets and variables → Actions**
-
-Configure:
-
-| Type | Name | Purpose |
+| Type | Name | Description |
 |---|---|---|
-| Repository variable | `DOCKERHUB_USERNAME` | Docker Hub username |
-| Repository secret | `DOCKERHUB_TOKEN` | Docker Hub access token |
+| Variable | `DOCKERHUB_USERNAME` | Docker Hub username |
+| Secret | `DOCKERHUB_TOKEN` | Docker Hub access token with permission to push |
 
-Do not store access tokens, passwords, or JWT secrets directly in workflow YAML files.
+Image tagging strategy:
 
----
+- Push to `assignment12`: `YOUR_DOCKERHUB_USERNAME/assignment12:assignment12` and a commit-SHA tag.
+- Push to `main`: `YOUR_DOCKERHUB_USERNAME/assignment12:latest` and a commit-SHA tag.
 
-## Docker Hub Image
+The deploy job runs only when prior tests and the security scan succeed. Review the actual GitHub Actions run to confirm deployment status; local test success alone does not prove the remote workflow passed.
 
-**Docker Hub repository:** [aby3989/assignment11](https://hub.docker.com/repository/docker/aby3989/assignment11/general)
+## Docker Hub
 
-The project currently uses the existing Docker Hub repository from Assignment 11.
+**Docker Hub repository:** [aby3989/assignment12](https://hub.docker.com/r/aby3989/assignment12)
 
-After successful deployment, pull the image using:
 
-```bash
-docker pull aby3989/assignment11:latest
-```
-
-The published application requires a valid JWT secret and a reachable PostgreSQL database.
-
-Configure `DATABASE_URL` and `SECRET_KEY` through the runtime environment. The application image does not automatically provide a PostgreSQL database.
-
-### Verify the Image
-
-Check the downloaded image:
+After a successful `assignment12` deployment, pull the branch-tagged image:
 
 ```bash
-docker images
+docker pull aby3989/assignment12:assignment12
 ```
 
-Run the application through an appropriately configured Docker environment and verify the health endpoint:
+After the final merge to `main` and successful deployment:
 
 ```bash
-curl http://localhost:8000/health
+docker pull aby3989/assignment12:latest
 ```
-
-A successful response confirms that the running FastAPI application is responding.
-
----
-
-## Assignment 11 Testing Summary
-
-| Component | Testing |
-|---|---|
-| Arithmetic operations | Unit tests |
-| Calculation Factory | Unit tests |
-| CalculationCreate validation | Unit tests |
-| CalculationRead serialization | Integration tests |
-| SQLAlchemy Calculation model | Unit and integration tests |
-| PostgreSQL persistence | Integration tests |
-| Invalid operation constraints | Integration tests |
-| Division by zero | Unit and integration tests |
-| Existing User functionality | Existing Assignment 10 tests |
-| FastAPI endpoints | Integration and E2E tests |
-| Application initialization | Unit tests |
-| CI/CD pipeline | GitHub Actions |
-
----
