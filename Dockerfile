@@ -42,5 +42,5 @@ HEALTHCHECK --interval=30s --timeout=5s \
     --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)" || exit 1
 
-# Start FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+# Initialize PostgreSQL tables before starting FastAPI
+CMD ["sh", "-c", "python -m app.database_init && exec uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4"]
