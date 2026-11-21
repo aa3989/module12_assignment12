@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, field_validator  # Use @validator for Pyd
 from fastapi.exceptions import RequestValidationError
 from app.operations import add, subtract, multiply, divide  # Ensure correct import path
 from app.routers.users import router as users_router
+from app.routers.calculations import router as calculations_router
 import uvicorn
 import logging
 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.include_router(users_router)
+app.include_router(calculations_router)
 
 # Setup templates directory
 templates = Jinja2Templates(directory="templates")
