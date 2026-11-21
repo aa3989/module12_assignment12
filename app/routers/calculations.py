@@ -94,3 +94,49 @@ def read_calculation(
         )
 
     return calculation
+
+
+
+@router.put(
+    "/{calculation_id}",
+    response_model=CalculationRead,
+    status_code=status.HTTP_200_OK,
+)
+def update_calculation(
+    calculation_id: int,
+    payload: CalculationCreate,
+    db: Session = Depends(get_db),
+):
+    """Update an existing calculation and recompute result."""
+
+    calculation = db.get(Calculation, calculation_id)
+
+    if calculation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation not found",
+        )
+
+    try:
+        new_result = CalculationFactory.calculate(
+            payload.a,
+            payload.b,
+            payload.type,
+        )
+
+        calculation.a = payload.a
+        calculation.b = payload.b
+        calculation.type = payload.type.value
+        calculation.result = new_result
+
+        db.commit()
+        db.refresh(calculation)
+
+        return calculation
+
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
