@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    container_name: assignment11_fastapi
+    container_name: assignment12_fastapi
     ports:
       - "8000:8000"
     volumes:
@@ -22,7 +22,7 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: assignment11_postgres_db
+    container_name: assignment12_postgres_db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -41,7 +41,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: assignment11_pgadmin
+    container_name: assignment12_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
