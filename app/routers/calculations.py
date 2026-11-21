@@ -53,3 +53,22 @@ def add_calculation(
             status_code=400,
             detail=str(exc),
         ) from exc
+
+
+@router.get(
+    "",
+    response_model=list[CalculationRead],
+    status_code=status.HTTP_200_OK,
+)
+def browse_calculations(
+    db: Session = Depends(get_db),
+):
+    """Retrieve all saved calculations."""
+
+    calculations = (
+        db.query(Calculation)
+        .order_by(Calculation.id.asc())
+        .all()
+    )
+
+    return calculations
