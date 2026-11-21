@@ -165,24 +165,3 @@ def delete_calculation(
     db.delete(calculation)
     db.commit()
 
-
-@router.delete(
-    "/{calculation_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-def delete_calculation(
-    calculation_id: int,
-    db: Session = Depends(get_db),
-):
-    """Delete a calculation by its ID."""
-
-    calculation = db.get(Calculation, calculation_id)
-
-    if calculation is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Calculation not found",
-        )
-
-    db.delete(calculation)
-    db.commit()
