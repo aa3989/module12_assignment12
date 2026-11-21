@@ -15,7 +15,7 @@ router = APIRouter(
     tags=["Calculations"],
 )
 
-
+"""Create operation for calculations is implemented below. This endpoint allows users to perform a calculation based on the provided input and save the result in the PostgreSQL database. The add_calculation function takes a CalculationCreate payload, computes the result using the CalculationFactory, and stores the calculation in the database. If any errors occur during the process, appropriate HTTP exceptions are raised."""
 @router.post(
     "",
     response_model=CalculationRead,
@@ -54,7 +54,7 @@ def add_calculation(
             detail=str(exc),
         ) from exc
 
-
+"""Read operations for calculations are implemented below. These endpoints allow users to retrieve all saved calculations or a specific calculation by its ID. The browse_calculations endpoint returns a list of all calculations, while the read_calculation endpoint retrieves a single calculation based on the provided ID, returning a 404 error if the calculation does not exist."""
 @router.get(
     "",
     response_model=list[CalculationRead],
@@ -96,7 +96,7 @@ def read_calculation(
     return calculation
 
 
-
+"""Edit and delete operations for calculations are implemented below. These endpoints allow users to update an existing calculation and recompute the result, as well as delete a calculation by its ID. The update operation checks if the calculation exists, recalculates the result based on the new input, and updates the database accordingly. The delete operation checks for existence and removes the calculation from the database if found."""
 @router.put(
     "/{calculation_id}",
     response_model=CalculationRead,
@@ -140,3 +140,49 @@ def update_calculation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+
+
+
+"""Delete operation for calculations is implemented below. This endpoint allows users to delete a calculation by its ID. The delete_calculation function checks if the calculation exists in the database and removes it if found, returning a 204 No Content status code. If the calculation does not exist, a 404 Not Found error is raised."""
+@router.delete(
+    "/{calculation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_calculation(
+    calculation_id: int,
+    db: Session = Depends(get_db),
+):
+    """Delete a calculation by its ID."""
+
+    calculation = db.get(Calculation, calculation_id)
+
+    if calculation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation not found",
+        )
+
+    db.delete(calculation)
+    db.commit()
+
+
+@router.delete(
+    "/{calculation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_calculation(
+    calculation_id: int,
+    db: Session = Depends(get_db),
+):
+    """Delete a calculation by its ID."""
+
+    calculation = db.get(Calculation, calculation_id)
+
+    if calculation is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation not found",
+        )
+
+    db.delete(calculation)
+    db.commit()
