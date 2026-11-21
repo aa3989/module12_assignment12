@@ -1,6 +1,6 @@
 
 """Unit tests for database session and initialization helpers."""
-
+import runpy
 from unittest.mock import MagicMock, patch
 
 from app import database
@@ -63,3 +63,26 @@ def test_drop_db_removes_tables():
         mock_drop_all.assert_called_once_with(
             bind=database_init.engine
         )
+
+
+def test_database_init_module_entrypoint(monkeypatch):
+    """Cover database initialization when run as __main__."""
+
+    from app.database import Base
+
+    # Prevent actual database table creation.
+    calls = []
+
+    def mock_create_all(*args, **kwargs):
+        calls.append(True)
+
+    monkeypatch.setattr(Base.metadata, "create_all", mock_create_all)
+
+    # Execute the module as if using:
+    # python -m app.database_init
+    runpy.run_module(
+        "app.database_init",
+        run_name="__main__",
+    )
+
+    assert calls == [True]
