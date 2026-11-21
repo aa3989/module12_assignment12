@@ -1,7 +1,7 @@
 """Integration tests for user registration and login."""
 
 from app.models.user import User
-
+from sqlalchemy.exc import IntegrityError
 
 def sample_user():
     """Provide valid registration data."""
@@ -161,3 +161,32 @@ def test_login_with_email(client):
 
     assert response.status_code == 200
     assert response.json()["user"]["email"] == payload["email"]
+
+
+def test_register_database_integrity_error(
+    client, monkeypatch
+):
+    """Database integrity errors return 409."""
+
+    def mock_register(*args, **kwargs):
+        raise IntegrityError(
+            statement="INSERT INTO users",
+            params={},
+            orig=Exception("Unique constraint violation"),
+        )
+
+    monkeypatch.setattr(
+        User,
+        "register",
+        mock_register,
+    )
+
+    response = client.post(
+        "/users/register",
+        json=sample_user(),
+    )
+
+    assert response.status_code == 409
+    assert response.json()["error"] == (
+        "Username or email already exists"
+    )

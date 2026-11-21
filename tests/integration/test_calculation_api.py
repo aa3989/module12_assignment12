@@ -3,7 +3,7 @@
 import pytest
 
 from app.models.calculation import Calculation
-
+from app.operations.factory import CalculationFactory
 
 def sample_calculation():
     """Return a valid calculation request."""
@@ -323,3 +323,63 @@ def test_invalid_calculation_id(client):
 
     assert response.status_code == 400
     assert "error" in response.json()
+
+
+def test_create_calculation_factory_error(
+    client, monkeypatch
+):
+    """Unexpected calculation ValueError returns 400."""
+
+    def mock_calculate(*args, **kwargs):
+        raise ValueError("Calculation failed")
+
+    monkeypatch.setattr(
+        CalculationFactory,
+        "calculate",
+        mock_calculate,
+    )
+
+    response = client.post(
+        "/calculations",
+        json=sample_calculation(),
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"] == "Calculation failed"
+
+
+def test_update_calculation_factory_error(
+    client, monkeypatch
+):
+    """Failed recalculation returns 400."""
+
+    created = client.post(
+        "/calculations",
+        json=sample_calculation(),
+    )
+
+    assert created.status_code == 201
+    calculation_id = created.json()["id"]
+
+    def mock_calculate(*args, **kwargs):
+        raise ValueError("Update calculation failed")
+
+    monkeypatch.setattr(
+        CalculationFactory,
+        "calculate",
+        mock_calculate,
+    )
+
+    response = client.put(
+        f"/calculations/{calculation_id}",
+        json={
+            "a": 20.0,
+            "b": 4.0,
+            "type": "Divide",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"] == (
+        "Update calculation failed"
+    )
